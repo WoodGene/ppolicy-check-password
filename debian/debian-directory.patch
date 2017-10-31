@@ -1,0 +1,99 @@
+diff -urN openldap-2.4.44+dfsg.orig/debian/changelog openldap-2.4.44+dfsg/debian/changelog
+--- openldap-2.4.44+dfsg.orig/debian/changelog	2017-08-10 21:12:46.000000000 +0200
++++ openldap-2.4.44+dfsg/debian/changelog	2017-10-30 16:38:59.480213873 +0100
+@@ -1,3 +1,10 @@
++openldap (2.4.44~1contrib20171030a) UNRELEASED; urgency=medium
++
++  * Added PPolicy password (strength) check module
++    (https://github.com/onyxpoint/ppolicy-check-password)
++
++ -- Cédric Dufour <cedric.dufour@ced-network.net>  Mon, 30 Oct 2017 16:38:51 +0100
++
+ openldap (2.4.44+dfsg-5+deb9u1) stretch; urgency=medium
+ 
+   * Relax the dependency of libldap-2.4-2 on libldap-common to also permit 
+diff -urN openldap-2.4.44+dfsg.orig/debian/control openldap-2.4.44+dfsg/debian/control
+--- openldap-2.4.44+dfsg.orig/debian/control	2017-08-10 07:07:34.000000000 +0200
++++ openldap-2.4.44+dfsg/debian/control	2017-10-30 16:58:34.264304722 +0100
+@@ -23,7 +23,8 @@
+                perl:any,
+                po-debconf,
+                time <!stage1>,
+-               unixodbc-dev <!stage1>
++               unixodbc-dev <!stage1>,
++               libcrack2-dev <!stage1>
+ Build-Conflicts: libbind-dev, bind-dev, libicu-dev, autoconf2.13
+ Standards-Version: 3.9.8
+ Homepage: http://www.openldap.org/
+@@ -55,13 +56,25 @@
+ Priority: extra
+ Architecture: any
+ Build-Profiles: <!stage1>
+-Depends: slapd (= ${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
++Depends: slapd, ${shlibs:Depends}, ${misc:Depends}
+ Description: Keeps Samba and Kerberos passwords in sync within slapd.
+  Extends the PasswordModify Extended Operation to update Kerberos keys
+  and Samba password hashes for an LDAP user. The Kerberos support is
+  written for Heimdal using its hdb-ldap backend. The Samba support is
+  written using the Samba 3.0 LDAP schema.
+ 
++Package: slapd-ppolicy-check-password
++Section: net
++Priority: extra
++Architecture: any
++Build-Profiles: <!stage1>
++Depends: slapd, ${shlibs:Depends}, ${misc:Depends}
++Suggests: cracklib-runtime
++Description: PPolicy password (strength) checker module
++  Extends the PPolicy module with password strength checks. Enable with:
++   pwdCheckModule: check_password.so
++   pwdCheckQuality: 2
++
+ Package: ldap-utils
+ Section: net
+ Priority: optional
+diff -urN openldap-2.4.44+dfsg.orig/debian/rules openldap-2.4.44+dfsg/debian/rules
+--- openldap-2.4.44+dfsg.orig/debian/rules	2017-08-10 07:07:34.000000000 +0200
++++ openldap-2.4.44+dfsg/debian/rules	2017-10-30 17:01:27.364259169 +0100
+@@ -107,6 +107,7 @@
+ 	$(MAKE) -C contrib/slapd-modules/autogroup CC=$(CC)
+ 	$(MAKE) -C contrib/slapd-modules/lastbind CC=$(CC)
+ 	$(MAKE) -C contrib/slapd-modules/passwd/sha2 CC=$(CC)
++	$(MAKE) -C contrib/slapd-modules/ppolicy-check-password CC=$(CC)
+ endif
+ 
+ override_dh_auto_test:
+@@ -123,6 +124,7 @@
+ 	$(MAKE) -C contrib/slapd-modules/autogroup install DESTDIR=$(installdir)
+ 	$(MAKE) -C contrib/slapd-modules/lastbind install DESTDIR=$(installdir)
+ 	$(MAKE) -C contrib/slapd-modules/passwd/sha2 install DESTDIR=$(installdir)
++	$(MAKE) -C contrib/slapd-modules/ppolicy-check-password install DESTDIR=$(installdir)
+ 
+ 	# Empty the dependency_libs file in the .la files.
+ 	for F in $(installdir)/usr/lib/ldap/*.la; do \
+@@ -153,6 +155,7 @@
+ override_dh_install-arch:
+ 	dh_install
+ 	rm -rf $(CURDIR)/debian/slapd/usr/lib/ldap/smbk5pwd*
++	rm -rf $(CURDIR)/debian/slapd/usr/lib/ldap/check_password*
+ endif
+ 
+ override_dh_installinit:
+@@ -236,4 +239,5 @@
+ 		contrib/slapd-modules/passwd/sha2/sha2.o \
+ 		contrib/slapd-modules/passwd/sha2/slapd-sha2.lo \
+ 		contrib/slapd-modules/passwd/sha2/slapd-sha2.o
++	$(MAKE) -C contrib/slapd-modules/ppolicy-check-password clean 
+ endif
+diff -urN openldap-2.4.44+dfsg.orig/debian/slapd-ppolicy-check-password.dirs openldap-2.4.44+dfsg/debian/slapd-ppolicy-check-password.dirs
+--- openldap-2.4.44+dfsg.orig/debian/slapd-ppolicy-check-password.dirs	1970-01-01 01:00:00.000000000 +0100
++++ openldap-2.4.44+dfsg/debian/slapd-ppolicy-check-password.dirs	2017-10-30 15:14:08.348071535 +0100
+@@ -0,0 +1,2 @@
++etc/ldap
++usr/lib/ldap
+diff -urN openldap-2.4.44+dfsg.orig/debian/slapd-ppolicy-check-password.install openldap-2.4.44+dfsg/debian/slapd-ppolicy-check-password.install
+--- openldap-2.4.44+dfsg.orig/debian/slapd-ppolicy-check-password.install	1970-01-01 01:00:00.000000000 +0100
++++ openldap-2.4.44+dfsg/debian/slapd-ppolicy-check-password.install	2017-10-30 16:40:55.360235176 +0100
+@@ -0,0 +1,2 @@
++contrib/slapd-modules/ppolicy-check-password/check_password.conf etc/ldap
++usr/lib/ldap/check_password.so*
