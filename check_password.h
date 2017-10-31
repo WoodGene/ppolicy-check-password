@@ -27,7 +27,7 @@
 #endif
 
 #define DEFAULT_QUALITY  3
-#define DEFAULT_CRACKLIB 1
+#define DEFAULT_CRACKLIB 0
 #define MEMORY_MARGIN    50
 #define MEM_INIT_SZ      64
 #define FILENAME_MAXLEN  512

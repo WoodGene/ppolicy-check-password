@@ -27,7 +27,7 @@
 #endif
 
 #define DEFAULT_QUALITY  3
-#define DEFAULT_CRACKLIB 1
+#define DEFAULT_CRACKLIB 0
 #define MEMORY_MARGIN    50
 #define MEM_INIT_SZ      64
 #define FILENAME_MAXLEN  512
@@ -56,12 +56,12 @@ struct config_entry {
   char* value;
   char* def_value;
 } config_entries[] = { { "min_points", NULL, "3"},
-    { "use_cracklib", NULL, "1"},
+    { "use_cracklib", NULL, "0"},
     { "min_upper", NULL, "0"},
     { "min_lower", NULL, "0"},
     { "min_digit", NULL, "0"},
     { "min_punct", NULL, "0"},
-    { "max_consecutive_per_class", NULL, "5"},
+    { "max_consecutive_per_class", NULL, "0"},
     { NULL, NULL, NULL }};
 
 int print_config_entries() {
