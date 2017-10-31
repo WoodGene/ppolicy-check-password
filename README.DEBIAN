@@ -1,0 +1,68 @@
+PPolicy password (strength) check module for Debian
+===================================================
+
+In order to build the LDAP Toolbox Project OpenLDAP pwdPolicyChecker library [1]
+- further tweaked and renamed to Onyx Point ppolicy-check-password module [2] -
+as a *separate* Debian package - slapd-ppolicy-check-password - that can easily
+be installed along your existing OpenLDAP/slapd setup:
+
+ * Get the Debian source code for the OpenLDAP packages and build dependencies:
+
+   apt-get source openldap
+   apt-get build-deps openldap
+
+ * Include the ppolicy-check-password source code into the OpenLDAP source tree
+   and install additional build dependencies:
+
+   cd openldap-<version>
+   mkdir -p contrib/slapd-modules/ppolicy-check-password
+   cp /path/to/ppolicy-check-password.git/* contrib/slapd-modules/ppolicy-check-password/.
+   apt-get install libcrack2-dev
+
+ * Patch the Debian (packaging) directory:
+
+   patch -p1 < /path/to/ppolicy-check-password.git/debian/debian-directory.patch
+
+ * Build the OpenLDAP packages:
+
+   dpkg-buildpackage -us -uc -b
+
+ * Copy and install the slapd-ppolicy-check-password_<version>.deb package to
+   the target server:
+
+   dpkg -i slapd-ppolicy-check-password_<version>.deb
+
+ * Configure the ppolicy-check-password module:
+
+   vim /etc/ldap/check_password.conf
+
+ * Add the ppolicy-check-password module/check to your PPolicy:
+
+   pwdCheckModule: check_password.so
+   pwdCheckQuality: 2
+
+
+NOTA BENE
+---------
+
+In order to ease the deployment of the ppolicy-check-password module into an
+existing OpenLDAP/slapd setup, the use of cracklib is disabled by default (as
+opposed to the default upstream configuration). Once your cracklib setup is
+configured and functional (which is beyond the scope of this README), you may
+enable it (again) in /etc/ldap/check_password.conf.
+
+The generated Debian package has its slapd dependency version constraint removed
+in order to allow its installation with stock Debian OpenLDAP packages.
+Also, you need NOT rebuild this package each time the OpenLDAP source package is
+updated; I've been using a previously built slapd-ppolicy-check-password package
+for years - throughout multiple OpenLDAP 2.4.* (build) versions - without
+problem.
+BUT beware of the time the contrib modules ABI changes (hopefully not without
+an OpenLDAP minor - or even major - version change).
+
+
+REFERENCES
+----------
+[1] https://ltb-project.org/
+[2] https://github.com/onyxpoint/ppolicy-check-password
+
